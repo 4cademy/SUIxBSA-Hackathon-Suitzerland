@@ -1,94 +1,138 @@
 import { useResolveSuiNSName } from '@mysten/dapp-kit';
 import { useSuiClientQuery } from '@mysten/dapp-kit';
-import { ConnectModal, useCurrentAccount } from '@mysten/dapp-kit';
-import Navbar from '../components/Navbar'; // Import your Navbar component
-import { Box, Container, Flex, Heading } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
+import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useState } from "react";
 
 
+import { useSuiClientQueries } from '@mysten/dapp-kit';
 
-const NFTDetail = ({ objectId }) => {
-  const { data: nftDetail } = useSuiClientQuery(
-    'getDynamicFieldObject',
-    { parentId: objectId, name: {type: 'url', value: "display"} },
-    {
-      gcTime: 10000,
-    },
-  );
+const forumObjectId = '0xFORUM_OBJECT_ID'; // Replace with your forum object ID
 
-  return (
-    <div>
-      {nftDetail && (
-        <img src={nftDetail.data.display} alt="NFT Image" />
-      )}
-    </div>
-  );
-};
+const { data: postsData, isPending, isError, error } = useSuiClientQuery(
+  'getDynamicFields',
+  { parentId: forumObjectId },
+  {
+    gcTime: 10000,
+  },
+);
+
+const posts = postsData?.data || [];
 
 
-const NFTLogic = () => {
-  const currentAccount = useCurrentAccount();
-  const [nftUrls, setNftUrls] = useState({});
-
-  const { SuiNSData, isSuiNSPending } = useResolveSuiNSName(currentAccount?.address);
-
-  const { data: NFTData, isPending, isError, error, refetch } = useSuiClientQuery(
-    'getOwnedObjects',
-    { owner: currentAccount?.address },
-    {
-      gcTime: 10000,
-    },
-  );
-
-  const { data: NFTDetails, isPending: isPendingDetails, isError: isErrorDetails, error: errorDetails } = useSuiClientQuery(
-    'getObject',
-    { id: NFTData?.data[0]?.data.objectId },
-    {
-      gcTime: 10000,
-    },
-  );
-
-  const nftDetails = NFTData?.data.map((nft) => {
-  const { data: nftDetail } = useSuiClientQuery(
-    'getDynamicFieldObject',
-    { parentId: nft.data.objectId, name: {type: 'url', value: "display"} },
-    {
-      gcTime: 10000,
-    },
-  );
-  console.log(nftDetail)
-  return { objectId: nftDetail?.data?.objectId, url: nftDetail?.data?.display };
-});
-
-
-  //console.log(nftDetails);
-
-
-  return (
-    <div className="flex justify-center items-center h-screen">
-
-
-        
- <div className="grid grid-cols- md:grid-cols-2 lg:grid-cols-3 gap-4">
- {NFTData?.data.map((nft, index) => (
-            <div key={index} className="card bg-base-100 w-96 shadow-xl text-sm" >            <div className="card-body ">
-                <h1 className="card-title">{nft?.data.objectId}</h1>
-                <p className="text-sm truncateBoth">{nft?.data?.digest}</p>
-                <p className="text-sm">{nft?.data?.version}</p>
-                <NFTDetail objectId={nft.data.objectId} />
-                <div className="card-actions justify-end">
-                  <button className="btn btn">View</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-         
-      
-    </div>
-
-  );
-};
-
-export default NFTLogic;
+const PostDetail = ({ postField }) => {
+    const { data: postData, isPending, isError, error } = useSuiClientQuery(
+      'getDynamicFieldObject',
+      {
+        parentId: forumObjectId,
+        name: postField.name, // Name of the dynamic field
+      },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    const postObjectId = postData?.data?.objectId;
+  
+    // Fetch the actual post object
+    const { data: postDetail } = useSuiClientQuery(
+      'getObject',
+      { id: postObjectId },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    // Handle loading and error states
+    if (isPending || !postDetail) return <div>Loading post...</div>;
+    if (isError) return <div>Error loading post: {error.message}</div>;
+  
+    return (
+      <div>
+        <h2>{postDetail.data.content.title}</h2>
+        <p>{postDetail.data.content.body}</p>
+        <CommentsList postId={postObjectId} />
+      </div>
+    );
+  };
+const CommentsList = ({ postId }) => {
+    const { data: commentsData } = useSuiClientQuery(
+      'getDynamicFields',
+      { parentId: postId },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    const comments = commentsData?.data || [];
+  
+    return (
+      <div>
+        {comments.map((commentField) => (
+          <CommentDetail
+            key={commentField.name}
+            postId={postId}
+            commentField={commentField}
+          />
+        ))}
+      </div>
+    );
+  };
+  
+const CommentDetail = ({ postId, commentField }) => {
+    const { data: commentData } = useSuiClientQuery(
+      'getDynamicFieldObject',
+      {
+        parentId: postId,
+        name: commentField.name,
+      },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    const commentObjectId = commentData?.data?.objectId;
+  
+    // Fetch the actual comment object
+    const { data: commentDetail } = useSuiClientQuery(
+      'getObject',
+      { id: commentObjectId },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    if (!commentDetail) return <div>Loading comment...</div>;
+  
+    return (
+      <div>
+        <p>{commentDetail.data.content.text}</p>
+      </div>
+    );
+  };
+  
+const Forum = () => {
+    const forumObjectId = '0xFORUM_OBJECT_ID'; // Replace with your forum object ID
+  
+    const { data: postsData, isPending, isError, error } = useSuiClientQuery(
+      'getDynamicFields',
+      { parentId: forumObjectId },
+      {
+        gcTime: 10000,
+      },
+    );
+  
+    if (isPending) return <div>Loading posts...</div>;
+    if (isError) return <div>Error loading posts: {error.message}</div>;
+  
+    const posts = postsData?.data || [];
+  
+    return (
+      <div>
+        {posts.map((postField) => (
+          <PostDetail key={postField.name} postField={postField} />
+        ))}
+      </div>
+    );
+  };
+  
+export default Forum;
