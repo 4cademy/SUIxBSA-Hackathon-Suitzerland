@@ -1,19 +1,40 @@
-/*
+
 #[test_only]
-module social_network::social_network_tests {
-    // uncomment this line to import the module
-    // use social_network::social_network;
+module social_network::social_network_tests;
 
-    const ENotImplemented: u64 = 0;
+use sui::test_scenario as ts;
 
-    #[test]
-    fun test_social_network() {
-        // pass
-    }
+use social_network::social_network::{Forum, Topic, Post, Self as sn};
 
-    #[test, expected_failure(abort_code = ::social_network::social_network_tests::ENotImplemented)]
-    fun test_social_network_fail() {
-        abort ENotImplemented
-    }
+const USER: address = @0x123;
+
+#[test]
+public fun setup() {
+    let mut scenario = ts::begin(USER);
+    {
+        sn::init_for_test(scenario.ctx());
+    };
+
+    let mut topic_id: ID = @0x0.to_id();
+    scenario.next_tx(USER);
+    {
+        let mut forum = scenario.take_shared<Forum>();
+
+        topic_id = forum.create_topic(b"New Topic".to_string(), scenario.ctx());
+
+        ts::return_shared(forum);
+    };
+
+    scenario.next_tx(USER);
+    {
+        let mut forum = scenario.take_shared<Forum>();
+
+        forum.create_post(topic_id, b"First post".to_string(), scenario.ctx());
+
+        ts::return_shared(forum);
+    };
+
+    scenario.end();
 }
-*/
+
+
