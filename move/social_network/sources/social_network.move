@@ -6,12 +6,18 @@ module social_network::social_network {
     use sui::table::{Self, Table};
 
     use sui::event;
+    use sui::clock::Clock;
+
+    const USERNAME_NOT_AVAILABLE_ERROR : u64 = 202;
+    const USER_ALREADY_REGISTERED_ERROR : u64 = 204;
 
 
     /// A Forum of topics.
     public struct Forum has key, store {
         id: UID,
         topics: Table<ID, Topic>,
+        users: Table<address, User>,
+        usernames_taken: vector<String>
     }
 
     /// A Topic with posts.
@@ -59,11 +65,24 @@ module social_network::social_network {
         text: String,
     }
 
+    /// A user with profile data and posts.
+   public struct User has key, store {
+       id: UID,
+       user_address: address, 
+       username: String,  
+       email: String,     
+       join_date: u64,        
+       posts: vector<Post>,   
+   }
+
+
     /// On deployment, the contract creates its Forum object.
     fun init(ctx: &mut TxContext) {
         transfer::share_object(Forum {
             id: object::new(ctx),
             topics: table::new(ctx),
+            users: table::new<address, User>(ctx),
+            usernames_taken: vector::empty<String>()
         });
     }
 
@@ -147,5 +166,34 @@ module social_network::social_network {
         init(ctx);
 
     }
+
+    /// Check if the user is already registered
+   public fun user_exists(forum: &mut Forum, user_address: address): bool {
+       return forum.users.contains(user_address)
+   }
+
+
+   /// Check if the username is already used
+   public fun username_exists(forum: &mut Forum, username: String): bool {
+       return std::vector::contains(&forum.usernames_taken,&username)
+   }
+
+
+    /// Create a new user in the forum.
+    public fun create_user(forum: &mut Forum, username: String, email: String, clock: &Clock, ctx: &mut TxContext) {
+        assert!(!user_exists(forum, ctx.sender()), USER_ALREADY_REGISTERED_ERROR);
+        assert!(!username_exists(forum, username), USERNAME_NOT_AVAILABLE_ERROR);
+        let user = User {
+            id: object::new(ctx),
+            user_address: ctx.sender(),
+            username: username,
+            email: email,
+            join_date: clock.timestamp_ms(),
+            posts: vector::empty<Post>(),
+        };
+        forum.users.add(ctx.sender(), user);
+        // transfer::public_transfer(user, ctx.sender());
+    }
+
 }
 
