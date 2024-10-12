@@ -54,7 +54,7 @@ module social_network::social_network {
     }
 
     /// Create a new post in a topic.
-    public fun create_post(ctx: &mut TxContext, topic: &mut Topic, text: String) {
+    public fun create_post(topic: &mut Topic, text: String, ctx: &mut TxContext) {
         let post = Post {
             id: object::new(ctx),
             creator: ctx.sender(),
@@ -65,7 +65,7 @@ module social_network::social_network {
     }
 
     /// Create a new comment on a post.
-    public fun create_comment(ctx: &mut TxContext, post: &mut Post, text: String) {
+    public fun create_comment(post: &mut Post, text: String, ctx: &mut TxContext) {
         let comment = Comment {
             id: object::new(ctx),
             creator: ctx.sender(),
