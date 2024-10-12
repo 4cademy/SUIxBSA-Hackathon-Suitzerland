@@ -41,19 +41,19 @@ module social_network::social_network {
     }
 
     // Events
-    public struct TopicCreated {
+    public struct TopicCreated has copy, drop {
         topic_id: ID,
         creator: address,
         title: String,
     }
 
-    public struct PostCreated {
+    public struct PostCreated has copy, drop {
         post_id: ID,
         creator: address,
         text: String,
     }
 
-    public struct CommentCreated {
+    public struct CommentCreated has copy, drop {
         comment_id: ID,
         creator: address,
         text: String,

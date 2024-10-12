@@ -16,6 +16,7 @@ public fun setup() {
     };
 
     let mut topic_id: ID = @0x0.to_id();
+    let mut post_id: ID = @0x0.to_id();
     scenario.next_tx(USER);
     {
         let mut forum = scenario.take_shared<Forum>();
@@ -29,7 +30,16 @@ public fun setup() {
     {
         let mut forum = scenario.take_shared<Forum>();
 
-        forum.create_post(topic_id, b"First post".to_string(), scenario.ctx());
+        post_id = forum.create_post(topic_id, b"First post".to_string(), scenario.ctx());
+
+        ts::return_shared(forum);
+    };
+
+    scenario.next_tx(USER);
+    {
+        let mut forum = scenario.take_shared<Forum>();
+
+        forum.create_comment(topic_id, post_id, b"First comment".to_string(), scenario.ctx());
 
         ts::return_shared(forum);
     };
