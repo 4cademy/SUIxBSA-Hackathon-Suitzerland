@@ -17,7 +17,7 @@ module social_network::social_network {
         id: UID,
         topics: Table<ID, Topic>,
         users: Table<address, User>,
-        usernames_taken: vector<String>
+        usernames_taken: Table<String, bool>,
     }
 
     /// A Topic with posts.
@@ -34,6 +34,7 @@ module social_network::social_network {
         topic_id: ID,
         creator: address,
         text: String,
+        creation_time: u64,
         comments: Table<ID, Comment>,
     }
 
@@ -44,6 +45,7 @@ module social_network::social_network {
         topic_id: ID,
         creator: address,
         text: String,
+        creation_time: u64,
     }
 
     // Events
@@ -71,8 +73,7 @@ module social_network::social_network {
        user_address: address, 
        username: String,  
        email: String,     
-       join_date: u64,        
-       posts: vector<Post>,   
+       join_date: u64,
    }
 
 
@@ -82,12 +83,13 @@ module social_network::social_network {
             id: object::new(ctx),
             topics: table::new(ctx),
             users: table::new<address, User>(ctx),
-            usernames_taken: vector::empty<String>()
+            usernames_taken: table::new<String, bool>(ctx),
         });
     }
 
     /// Create a new topic in the forum.
     public fun create_topic(forum: &mut Forum, title: String, ctx: &mut TxContext): ID {
+        assert!(user_exists(forum, ctx.sender()), USER_ALREADY_REGISTERED_ERROR);
         let uid = object::new(ctx);
         let id = uid.to_inner();
         let topic = Topic {
@@ -107,7 +109,8 @@ module social_network::social_network {
     }
 
     /// Create a new post in a topic.
-    public fun create_post(forum: &mut Forum, topic_id: ID, text: String, ctx: &mut TxContext): ID {
+    public fun create_post(forum: &mut Forum, topic_id: ID, text: String, clock: &Clock, ctx: &mut TxContext): ID {
+        assert!(user_exists(forum, ctx.sender()), USER_ALREADY_REGISTERED_ERROR);
         let uid = object::new(ctx);
         let id = uid.to_inner();
         let post = Post {
@@ -115,6 +118,7 @@ module social_network::social_network {
             topic_id: topic_id,
             creator: ctx.sender(),
             text: text,
+            creation_time: clock.timestamp_ms(),
             comments: table::new(ctx),
         };
 
@@ -134,7 +138,8 @@ module social_network::social_network {
     }
 
     /// Create a new comment on a post.
-    public fun create_comment(forum: &mut Forum, topic_id: ID, post_id: ID, text: String, ctx: &mut TxContext): ID {
+    public fun create_comment(forum: &mut Forum, topic_id: ID, post_id: ID, text: String, clock: &Clock, ctx: &mut TxContext): ID {
+        assert!(user_exists(forum, ctx.sender()), USER_ALREADY_REGISTERED_ERROR);
         let uid = object::new(ctx);
         let id = uid.to_inner();
         let comment = Comment {
@@ -142,7 +147,8 @@ module social_network::social_network {
             post_id: post_id,
             topic_id: topic_id,
             creator: ctx.sender(),
-            text: text
+            text: text,
+            creation_time: clock.timestamp_ms(),
         };
         let topics = &mut forum.topics;
         let topic = table::borrow_mut(topics, topic_id);
@@ -175,7 +181,7 @@ module social_network::social_network {
 
    /// Check if the username is already used
    public fun username_exists(forum: &mut Forum, username: String): bool {
-       return std::vector::contains(&forum.usernames_taken,&username)
+       return forum.usernames_taken.contains(username)
    }
 
 
@@ -189,10 +195,9 @@ module social_network::social_network {
             username: username,
             email: email,
             join_date: clock.timestamp_ms(),
-            posts: vector::empty<Post>(),
         };
         forum.users.add(ctx.sender(), user);
-        // transfer::public_transfer(user, ctx.sender());
+        forum.usernames_taken.add(username, true);
     }
 
 }
