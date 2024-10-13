@@ -105,14 +105,15 @@ const ForumLogic = () => {
     refetch3
   }));
 
-  console.log("A Topic:", topics[0]?.data);
+  console.log("A Topic:", topics[1]?.data);
   
   // create array of topic names
   let topicNames = [];
   for (let i = 0; i < topics.length; i++) {
     let myTopic = {
       title: topics[i]?.data?.data?.content?.fields?.value?.fields?.title,
-      tableID: topics[i]?.data?.data?.content?.fields?.value?.fields?.posts?.fields?.id?.id
+      tableID: topics[i]?.data?.data?.content?.fields?.value?.fields?.posts?.fields?.id?.id,
+      addToTopicId: topics[i]?.data?.data?.content?.fields?.name
     }
     topicNames.push(myTopic);
   }
@@ -128,7 +129,7 @@ const ForumLogic = () => {
       {topicNames.map((item, index) => (
         <button 
           key={index} 
-          onClick={() => handleRedirect(item.tableID, item.tableID, item.title)}
+          onClick={() => handleRedirect(item.tableID, item.title, item.addToTopicId)}
           style={{
             padding: '10px 20px',
             fontSize: '16px',

@@ -22,14 +22,14 @@ interface TopicLogicProps {
   arg3: string | null;
 }
 
-const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
+const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) => {
   const createArray = (n: number): number[] => {
     return Array.from({ length: n }, (_, index) => index);
   };
 
   const navigate = useNavigate();
 
-  const handleRedirect = (arg1: string, arg2: string, arg3: string) => {
+  const handleRedirect = (arg1: string, arg2: string, arg3: string, arg4: string, arg5: string) => {
     navigate(`/Post?arg1=${arg1}&arg2=${arg2}&arg3=${arg3}`);
   };
 
@@ -42,6 +42,9 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
 
   let topicID = arg1;
   let commentsTableID = arg2;
+  let postText = arg3;
+  let addToTopicId = arg4;
+  let addToPostId = arg5;
 
   // query the dynamic fields of the topic table
 
@@ -124,7 +127,7 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
     textAlign: 'center',
     marginBottom: '10px'
   }}>
-    Post: {arg3}
+    Post: {postText}
   </div>
   
   <div style={{

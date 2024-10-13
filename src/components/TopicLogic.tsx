@@ -29,8 +29,8 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
 
   const navigate = useNavigate();
 
-  const handleRedirect = (arg1: string, arg2: string, arg3: string) => {
-    navigate(`/Post?arg1=${arg1}&arg2=${arg2}&arg3=${arg3}`);
+  const handleRedirect = (arg1: string, arg2: string, arg3: string, arg4: string, arg5: string) => {
+    navigate(`/Post?arg1=${arg1}&arg2=${arg2}&arg3=${arg3}&arg4=${arg4}&arg5=${arg5}`);
   };
 
   const currentAccount = useCurrentAccount();
@@ -41,6 +41,8 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
   const forumID = FORUM_OBJECT_ADDR;
 
   let postTableId = arg1;
+  let topicText = arg2;
+  let addToTopicId = arg3;
 
   // query the dynamic fields of the topic table
 
@@ -103,7 +105,8 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
       text: posts[i]?.data?.data?.content?.fields?.value?.fields?.text,
       creator: posts[i]?.data?.data?.content?.fields?.value?.fields?.creator,
       topicID: posts[i]?.data?.data?.content?.fields?.value?.fields?.topicID,
-      commentsTableID: posts[i]?.data?.data?.content?.fields?.value?.fields?.comments?.fields?.id?.id
+      commentsTableID: posts[i]?.data?.data?.content?.fields?.value?.fields?.comments?.fields?.id?.id,
+      addToPostId: posts[i]?.data?.data?.content?.fields?.name
     }
     postArray.push(MyPost);
   }
@@ -122,7 +125,7 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
     textAlign: 'center',
     marginBottom: '10px'
   }}>
-    Topic: {arg3}
+    Topic: {topicText}
   </div>
 
   <div style={{
@@ -135,7 +138,7 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
     {postArray.map((item, index) => (
       <button 
         key={index} 
-        onClick={() => handleRedirect(item.topicID, item.commentsTableID, item.text)}
+        onClick={() => handleRedirect(item.topicID, item.commentsTableID, item.text, addToTopicId, item.addToPostId)}
         style={{
           padding: '10px 20px',
           backgroundColor: '#8E44AD', // Changed to a not too bright purple
