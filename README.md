@@ -9,6 +9,6 @@ npm install
 npm run dev
 ```
 Then click the following link to access Suitzerland:
-http://localhost:5173/[http://localhost:5173/]
+http://localhost:5173/
 
 **We encourage you to leave a comment in Suitzerland! :)**
