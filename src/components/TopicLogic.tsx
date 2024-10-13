@@ -10,6 +10,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ButtonList from './ButtonList';
 import Subpage from './Subpage';
 import { useNavigate } from 'react-router-dom';
+import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 
 import {
   TESTNET_COUNTER_PACKAGE_ID,
@@ -23,6 +25,22 @@ interface TopicLogicProps {
 }
 
 const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
+  const suiClient = useSuiClient();
+
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction({
+    execute: async ({ bytes, signature }) =>
+      await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          // Raw effects are required so the effects can be reported back to the wallet
+          showRawEffects: true,
+          showEffects: true,
+        },
+      }),
+  });
+
+
   const createArray = (n: number): number[] => {
     return Array.from({ length: n }, (_, index) => index);
   };
@@ -141,7 +159,7 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
         onClick={() => handleRedirect(item.topicID, item.commentsTableID, item.text, addToTopicId, item.addToPostId)}
         style={{
           padding: '10px 20px',
-          backgroundColor: '#8E44AD', // Changed to a not too bright purple
+          backgroundColor: '#8E44AD',
           color: 'white',
           border: 'none',
           borderRadius: '12px',
@@ -169,9 +187,79 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
       </button>
     ))}
   </div>
+
+  <div style={{
+    width: '100%',
+    height: '1px',
+    backgroundColor: '#ccc',
+    margin: '10px 0'
+  }}></div>
+
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    width: '100%',
+    maxWidth: '300px'
+  }}>
+    <input
+      type="text"
+      id="post-input"
+      placeholder="Enter your post"
+      style={{
+        width: '100%',
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid #ccc'
+      }}
+    />
+    <button
+      onClick={() => {
+        const inputElement = document.getElementById('post-input') as HTMLInputElement;
+        const newPost = inputElement.value;
+        create(newPost);
+      }}
+      style={{
+        padding: '10px 20px',
+        backgroundColor: '#8E44AD',
+        color: 'white',
+        border: 'none',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        width: '100%',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      Create Post
+    </button>
+  </div>
 </div>
 
+
   );
+
+  function create(postText: string) {
+    const tx = new Transaction();
+
+    tx.moveCall({
+      arguments: [tx.object(FORUM_OBJECT_ADDR), tx.object(addToTopicId), tx.pure.string(postText), tx.object('0x6')],
+      target: `${TESTNET_COUNTER_PACKAGE_ID}::social_network::create_post`,
+    });
+
+    signAndExecute(
+      {
+        transaction: tx,
+      },
+      {
+        onSuccess: (result) => {
+          // Refresh the page
+          location.reload();
+        },
+      },
+    );
+  }
 };
 
 export default TopicLogic;
