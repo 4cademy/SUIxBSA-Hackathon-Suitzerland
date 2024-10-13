@@ -10,19 +10,42 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ButtonList from './ButtonList';
 import Subpage from './Subpage';
 import { useNavigate } from 'react-router-dom';
+import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 
 import {
   TESTNET_COUNTER_PACKAGE_ID,
   FORUM_OBJECT_ADDR,
 } from "../constants.ts";
 
-interface TopicLogicProps {
+interface PostLogicProps {
   arg1: string | null;
   arg2: string | null;
   arg3: string | null;
+  arg4: string | null;
+  arg5: string | null;
 }
 
-const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) => {
+const PostLogic: React.FC<PostLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) => {
+  console.log("arg1: ", arg1);
+  console.log("arg2: ", arg2);
+  console.log("arg3: ", arg3);
+  console.log("arg4: ", arg4);
+  console.log("arg5: ", arg5);
+  const suiClient = useSuiClient();
+
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction({
+    execute: async ({ bytes, signature }) =>
+      await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          // Raw effects are required so the effects can be reported back to the wallet
+          showRawEffects: true,
+          showEffects: true,
+        },
+      }),
+  });
   const createArray = (n: number): number[] => {
     return Array.from({ length: n }, (_, index) => index);
   };
@@ -30,7 +53,7 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) 
   const navigate = useNavigate();
 
   const handleRedirect = (arg1: string, arg2: string, arg3: string, arg4: string, arg5: string) => {
-    navigate(`/Post?arg1=${arg1}&arg2=${arg2}&arg3=${arg3}`);
+    navigate(`/Post?arg1=${arg1}&arg2=${arg2}&arg3=${arg3}&arg4=${arg4}&arg5=${arg5}`);
   };
 
   const currentAccount = useCurrentAccount();
@@ -40,11 +63,11 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) 
 
   const forumID = FORUM_OBJECT_ADDR;
 
-  let topicID = arg1;
+  let topicID = JSON.parse(arg1);
   let commentsTableID = arg2;
   let postText = arg3;
-  let addToTopicId = arg4;
-  let addToPostId = arg5;
+  let addToTopicId = topicID[0];
+  let addToPostId = topicID[1];
 
   // query the dynamic fields of the topic table
 
@@ -113,6 +136,9 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) 
     commentsArray.push(MyComment);
   }
 
+  console.log("addToTopicId: ", addToTopicId);
+  console.log("addToPostId: ", addToPostId);
+
   return (
 <div style={{
   display: 'flex',
@@ -170,9 +196,81 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) 
       </button>
     ))}
   </div>
+
+  <div style={{
+    width: '100%',
+    height: '1px',
+    backgroundColor: '#ccc',
+    margin: '10px 0'
+  }}></div>
+
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    width: '100%',
+    maxWidth: '300px'
+  }}>
+    <input
+      type="text"
+      id="post-input"
+      placeholder="Enter your comment"
+      style={{
+        width: '100%',
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid #ccc'
+      }}
+    />
+    <button
+      onClick={() => {
+        const inputElement = document.getElementById('post-input') as HTMLInputElement;
+        const newPost = inputElement.value;
+        create(newPost);
+      }}
+      style={{
+        padding: '10px 20px',
+        backgroundColor: '#F4E6C3',
+        color: 'white',
+        border: 'none',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        width: '100%',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      Create Comment
+    </button>
+  </div>
 </div>
 
   );
+
+  function create(postText: string) {
+    const tx = new Transaction();
+
+    console.log("addToTopicId: ", addToTopicId);
+    console.log("addToPostId: ", addToPostId);
+
+    tx.moveCall({
+      arguments: [tx.object(FORUM_OBJECT_ADDR), tx.object(addToTopicId), tx.object(addToPostId), tx.pure.string(postText), tx.object('0x6')],
+      target: `${TESTNET_COUNTER_PACKAGE_ID}::social_network::create_comment`,
+    });
+
+    signAndExecute(
+      {
+        transaction: tx,
+      },
+      {
+        onSuccess: (result) => {
+          // Refresh the page
+          location.reload();
+        },
+      },
+    );
+  }
 };
 
 export default PostLogic;

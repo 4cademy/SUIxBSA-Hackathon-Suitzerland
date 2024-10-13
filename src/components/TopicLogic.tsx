@@ -25,6 +25,9 @@ interface TopicLogicProps {
 }
 
 const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
+  console.log("arg1: ", arg1);
+  console.log("arg2: ", arg2);
+  console.log("arg3: ", arg3);
   const suiClient = useSuiClient();
 
   const { mutate: signAndExecute } = useSignAndExecuteTransaction({
@@ -156,7 +159,7 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
     {postArray.map((item, index) => (
       <button 
         key={index} 
-        onClick={() => handleRedirect(item.topicID, item.commentsTableID, item.text, addToTopicId, item.addToPostId)}
+        onClick={() => handleRedirect(JSON.stringify([addToTopicId, item.addToPostId]), item.commentsTableID, item.text, addToTopicId, item.addToPostId)}
         style={{
           padding: '10px 20px',
           backgroundColor: '#8E44AD',
