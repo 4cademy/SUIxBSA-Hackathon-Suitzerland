@@ -11,6 +11,11 @@ import ButtonList from './ButtonList';
 import Subpage from './Subpage';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  TESTNET_COUNTER_PACKAGE_ID,
+  FORUM_OBJECT_ADDR,
+} from "../constants.ts";
+
 interface TopicLogicProps {
   arg1: string | null;
   arg2: string | null;
@@ -33,7 +38,7 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
 
   const { SuiNSData, isSuiNSPending } = useResolveSuiNSName(currentAccount?.address);
 
-  const forumID = "0x483fa41b9a5c06f7d6dd8ebc2b725470bb0b79aad4d224b3c63403f832015be0";
+  const forumID = FORUM_OBJECT_ADDR;
 
   let topicID = arg1;
   let commentsTableID = arg2;
@@ -134,9 +139,9 @@ const PostLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
         key={index} 
         style={{
           padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
+          backgroundColor: '#F4E6C3', // Changed to a parchment-like color
+          color: '#333', // Changed text color to dark gray for better contrast
+          border: '1px solid #D3C6A6', // Added a subtle border
           borderRadius: '12px',
           cursor: 'pointer',
           width: '200px',

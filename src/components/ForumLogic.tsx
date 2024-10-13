@@ -11,6 +11,11 @@ import ButtonList from './ButtonList';
 import Subpage from './Subpage';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  TESTNET_COUNTER_PACKAGE_ID,
+  FORUM_OBJECT_ADDR,
+} from "../constants.ts";
+
 
 const ForumLogic = () => {
   const navigate = useNavigate();
@@ -24,7 +29,7 @@ const ForumLogic = () => {
 
   const { SuiNSData, isSuiNSPending } = useResolveSuiNSName(currentAccount?.address);
 
-  const forumID = "0x483fa41b9a5c06f7d6dd8ebc2b725470bb0b79aad4d224b3c63403f832015be0";
+  const forumID = FORUM_OBJECT_ADDR;
 
   // query the ID of the topic table
 
