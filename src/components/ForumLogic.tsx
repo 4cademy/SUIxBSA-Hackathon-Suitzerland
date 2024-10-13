@@ -10,14 +10,32 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ButtonList from './ButtonList';
 import Subpage from './Subpage';
 import { useNavigate } from 'react-router-dom';
+import { Transaction, TransactionArgument } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 
 import {
   TESTNET_COUNTER_PACKAGE_ID,
   FORUM_OBJECT_ADDR,
 } from "../constants.ts";
+import { SerializedBcs } from '@mysten/bcs';
 
 
 const ForumLogic = () => {
+  const suiClient = useSuiClient();
+
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction({
+    execute: async ({ bytes, signature }) =>
+      await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          // Raw effects are required so the effects can be reported back to the wallet
+          showRawEffects: true,
+          showEffects: true,
+        },
+      }),
+  });
+
   const navigate = useNavigate();
 
   const handleRedirect = (arg1: string, arg2: string, arg3: string) => {
@@ -119,7 +137,7 @@ const ForumLogic = () => {
   }
 
   return (
-    <div style={{
+<div style={{
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -136,7 +154,7 @@ const ForumLogic = () => {
             backgroundColor: '#4CAF50',
             color: 'white',
             border: 'none',
-            borderRadius: '12px', // This creates rounded corners [[5]]
+            borderRadius: '12px',
             cursor: 'pointer',
             width: '200px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
@@ -146,8 +164,79 @@ const ForumLogic = () => {
           {item.title}
         </button>
       ))}
+      
+      <hr style={{
+        width: '100%',
+        margin: '20px 0',
+        border: 'none',
+        borderTop: '1px solid #ccc'
+      }} />
+      
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '10px',
+        marginTop: '20px'
+      }}>
+        <input 
+          type="text" 
+          placeholder="Enter new topic"
+          id="newTopicInput"
+          style={{
+            padding: '10px',
+            fontSize: '16px',
+            borderRadius: '5px',
+            border: '1px solid #ccc',
+            width: '200px'
+          }}
+        />
+        <button 
+          onClick={() => {
+            const inputElement = document.getElementById('newTopicInput') as HTMLInputElement;
+            const newTopic = inputElement.value;
+            create(newTopic);
+          }}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            width: '200px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          Create Topic
+        </button>
+      </div>
     </div>
+
   );
+
+  function create(newTopic: string) {
+    const tx = new Transaction();
+
+    tx.moveCall({
+      arguments: [tx.object(FORUM_OBJECT_ADDR), tx.pure.string(newTopic)],
+      target: `${TESTNET_COUNTER_PACKAGE_ID}::social_network::create_topic`,
+    });
+
+    signAndExecute(
+      {
+        transaction: tx,
+      },
+      {
+        onSuccess: (result) => {
+          // Refresh the page
+          location.reload();
+        },
+      },
+    );
+  }
 };
 
 export default ForumLogic;
