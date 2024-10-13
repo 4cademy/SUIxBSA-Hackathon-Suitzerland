@@ -8,9 +8,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.tsx";
 import { networkConfig } from "./networkConfig.ts";
 import './index.css'; // Import the styles.css file
-import './output.css';
+import './output2.css';
 
-const network = import.meta.env.VITE_NETWORK || 'testnet';
+export const network = import.meta.env.VITE_NETWORK || 'testnet';
 
 
 const queryClient = new QueryClient();
