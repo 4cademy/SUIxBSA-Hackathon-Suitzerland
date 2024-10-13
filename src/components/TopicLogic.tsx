@@ -137,18 +137,27 @@ const TopicLogic: React.FC<TopicLogicProps> = ({ arg1, arg2, arg3 }) => {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: '20px',
-  padding: '20px'
+  gap: '10px',
+  padding: '10px'
 }}>
-  <div style={{
+  <button style={{
     fontSize: '24px',
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: '10px'
+    marginBottom: '10px',
+    padding: '10px 20px',
+    backgroundColor: '#4CAF50', // New background color
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    width: '300px', // Increased width
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease'
   }}>
-    Topic: {topicText}
-  </div>
-
+    {topicText}
+  </button>
+  Posts:
   <div style={{
     display: 'flex',
     flexDirection: 'column',

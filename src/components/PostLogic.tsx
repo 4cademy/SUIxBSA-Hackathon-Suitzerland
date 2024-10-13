@@ -147,15 +147,25 @@ const PostLogic: React.FC<PostLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) =
   gap: '20px',
   padding: '20px'
 }}>
-  <div style={{
+  <button style={{
     fontSize: '24px',
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: '10px'
+    marginBottom: '10px',
+    backgroundColor: '#8E44AD', // New background color
+    color: 'white', // Changed text color for better contrast
+    padding: '15px 30px', // Added padding for better appearance
+    border: 'none', // Removed border
+    borderRadius: '12px', // Added border radius for consistency
+    cursor: 'pointer', // Changed cursor to pointer on hover
+    width: '80%', // Made the button wider
+    maxWidth: '400px', // Set a maximum width
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)', // Added shadow for depth
+    transition: 'all 0.3s ease' // Added transition for smooth hover effects
   }}>
     Post: {postText}
-  </div>
-  
+  </button>
+  Comments:
   <div style={{
     display: 'flex',
     flexDirection: 'column',
@@ -232,7 +242,7 @@ const PostLogic: React.FC<PostLogicProps> = ({ arg1, arg2, arg3, arg4, arg5 }) =
       style={{
         padding: '10px 20px',
         backgroundColor: '#F4E6C3',
-        color: 'white',
+        color: '#333',
         border: 'none',
         borderRadius: '12px',
         cursor: 'pointer',
